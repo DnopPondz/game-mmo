@@ -1,17 +1,267 @@
 <!doctype html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600;700&display=swap"
+        rel="stylesheet"
+    />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Phaser - Template</title>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        midnight: '#050b16',
+                        cobalt: '#1c2642',
+                        azure: '#38bdf8',
+                        lagoon: '#0f172a'
+                    },
+                    fontFamily: {
+                        display: ['"Chakra Petch"', 'sans-serif']
+                    },
+                    boxShadow: {
+                        neon: '0 0 45px rgba(56, 189, 248, 0.25)'
+                    }
+                }
+            }
+        };
+    </script>
+    <title>Chronicle Depths // Idle MMO Concept</title>
 </head>
 
-<body class="m-0 min-h-screen bg-black text-white/90">
-    <div id="app" class="flex min-h-screen w-full items-center justify-center overflow-hidden">
-        <div id="game-container" class="h-full w-full"></div>
+<body class="font-display bg-midnight text-slate-100 antialiased">
+    <div class="relative min-h-screen overflow-hidden">
+        <div class="absolute inset-0">
+            <div class="h-full w-full bg-[radial-gradient(circle_at_top,#112044_0%,#071226_55%,#02060f_100%)]"></div>
+            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.25),transparent_55%)]"></div>
+        </div>
+
+        <div class="relative mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10 lg:px-12">
+            <header class="flex flex-wrap items-start justify-between gap-6 border-b border-white/10 pb-8">
+                <div class="space-y-3">
+                    <p class="text-xs uppercase tracking-[0.55em] text-azure/70">EPOCH MMO CONCEPT</p>
+                    <h1 class="text-4xl font-semibold tracking-tight text-slate-100 drop-shadow-md md:text-5xl">
+                        Chronicle Depths
+                    </h1>
+                    <p class="max-w-2xl text-base text-slate-300 md:text-lg">
+                        Idle MMO แนวออโต้ฟาร์มในโลกใต้พิภพ ผู้เล่นสะสมเวล ไอเทม และชิ้นส่วนคราฟอาวุธระดับสูง
+                        ผ่านระบบ Drop แบบสุ่มหลายระดับ และตลาดกลางที่หมุนเวียนตลอดเวลา
+                    </p>
+                </div>
+                <div class="flex flex-col items-end gap-3 text-sm text-slate-300">
+                    <div class="rounded-full border border-white/10 bg-white/5 px-5 py-2 backdrop-blur">
+                        <span class="font-semibold text-azure">Season 03</span>
+                        <span class="ml-2 text-white/60">Deep Vault Awakening</span>
+                    </div>
+                    <button class="flex items-center gap-2 rounded-full border border-azure/40 bg-azure/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-azure backdrop-blur transition hover:border-azure hover:bg-azure/20">
+                        เข้าสู่ระบบผู้กล้า
+                    </button>
+                </div>
+            </header>
+
+            <main class="mt-8 grid flex-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)_320px]">
+                <aside class="space-y-6">
+                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-neon backdrop-blur">
+                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>ผู้บังคับการ</span>
+                            <span>Auto Online</span>
+                        </div>
+                        <div class="mt-4 space-y-3">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.4em] text-white/40">อันดับ</p>
+                                <p class="text-2xl font-semibold text-azure">Nova Vanguard</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-sm text-slate-200">
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.25em] text-white/40">เลเวล</p>
+                                    <p class="text-lg font-semibold">52</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.25em] text-white/40">พลังต่อสู้</p>
+                                    <p class="text-lg font-semibold text-fuchsia-300">128,450</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.25em] text-white/40">เวลาฟาร์ม</p>
+                                    <p class="text-lg font-semibold">18:42:16</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs uppercase tracking-[0.25em] text-white/40">ทองคำ</p>
+                                    <p class="text-lg font-semibold text-amber-300">1,294,820</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>Rarity Codex</span>
+                            <span>Drop Pool</span>
+                        </div>
+                        <ul class="mt-4 space-y-3 text-sm">
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-slate-700/60 via-slate-800/30 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">G — เกียร์พื้นฐาน</p>
+                                    <p class="text-xs text-slate-400">ดรอปบ่อยสุด ใช้ป้อนเป็นวัตถุดิบคราฟ</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-blue-700/50 via-blue-900/30 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-sky-400"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">F — ฟลูอิไดซ์</p>
+                                    <p class="text-xs text-slate-400">ชิ้นส่วนประดับ เพิ่มค่า EXP Gain</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-cyan-700/40 via-cyan-900/20 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-cyan-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">D — ดัสต์โครเมียม</p>
+                                    <p class="text-xs text-slate-400">อัปเกรดชุดเกราะเพื่อปลดล็อกสกิลรอง</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-emerald-700/50 via-emerald-900/30 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-emerald-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">C — คอร์ฟลักซ์</p>
+                                    <p class="text-xs text-slate-400">หัวใจการคราฟอาวุธชั้นกลาง</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-fuchsia-700/40 via-fuchsia-900/20 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-fuchsia-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">A — อาร์คานัม</p>
+                                    <p class="text-xs text-slate-400">วัสดุระดับสูงสำหรับสร้างอาวุธเซ็ต</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-amber-700/40 via-amber-900/20 to-transparent px-4 py-3">
+                                <span class="h-2.5 w-2.5 rounded-full bg-amber-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">S — ซิกเนเจอร์</p>
+                                    <p class="text-xs text-slate-400">สุดยอดดรอปจากบอสลึก เคลือบโครโนกลาส</p>
+                                </div>
+                            </li>
+                            <li class="flex items-center gap-3 rounded-2xl border border-azure/30 bg-azure/10 px-4 py-3 text-azure">
+                                <span class="h-2.5 w-2.5 rounded-full bg-azure"></span>
+                                <div>
+                                    <p class="font-semibold">ST / SP / OP / KO — Vault Exclusive</p>
+                                    <p class="text-xs text-azure/70">หาจากกล่องสุ่มเท่านั้น ไม่สามารถคราฟ</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
+                </aside>
+
+                <section id="app" class="flex flex-col gap-6">
+                    <div class="rounded-[32px] border border-white/10 bg-white/5 p-6 shadow-neon backdrop-blur">
+                        <div class="flex flex-wrap items-center justify-between gap-4 text-xs uppercase tracking-[0.4em] text-slate-300">
+                            <span>Deep Farm Sector</span>
+                            <span>Auto Battle Status</span>
+                        </div>
+                        <div class="relative mt-6 flex min-h-[600px] items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-br from-slate-900/70 via-slate-950/40 to-slate-900/60 p-4 shadow-inner">
+                            <div id="game-container" class="h-[560px] w-full max-w-[1024px] overflow-hidden rounded-2xl border border-azure/20 bg-black/30 shadow-lg"></div>
+                            <div class="pointer-events-none absolute inset-0 rounded-3xl border border-white/5"></div>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 lg:grid-cols-3">
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                            <h2 class="text-sm font-semibold uppercase tracking-[0.35em] text-azure/80">Auto Farm Loop</h2>
+                            <p class="mt-3 text-sm text-slate-300">
+                                ตัวละครจะสู้แบบอัตโนมัติ เก็บ EXP, Gold และชิ้นส่วนคราฟทุกๆ เทิร์น พร้อมระบบปรับความเร็วตามระดับ
+                                VIP เพื่อเพิ่มผลตอบแทนต่อชั่วโมง
+                            </p>
+                        </div>
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                            <h2 class="text-sm font-semibold uppercase tracking-[0.35em] text-azure/80">Chrono Forge</h2>
+                            <p class="mt-3 text-sm text-slate-300">
+                                ใช้วัสดุระดับ G ถึง S สร้างเซ็ตไอเทม จุดเปลี่ยนอยู่ที่การตั้งค่า Blueprint และ Catalysts
+                                ที่ปลดความสามารถเฉพาะของคลาส
+                            </p>
+                        </div>
+                        <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                            <h2 class="text-sm font-semibold uppercase tracking-[0.35em] text-azure/80">Vault Gacha</h2>
+                            <p class="mt-3 text-sm text-slate-300">
+                                เปิดกล่องสุ่มลึกลับเพื่อคว้า ST / SP / OP / KO พร้อมระบบตลาดกลางให้ผู้เล่นซื้อขายทุกสิ่งในกระเป๋าได้ทันที
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <aside class="space-y-6">
+                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>กิจกรรมสด</span>
+                            <span>00:12:45</span>
+                        </div>
+                        <ul class="mt-4 space-y-3 text-sm text-slate-300">
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-amber-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Abyssal Raid — Leviathan Core</p>
+                                    <p class="text-xs text-slate-400">สะสม Core 20 ชิ้น แลกสกินเรือเหาะระดับ KO</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-fuchsia-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Guild War Season</p>
+                                    <p class="text-xs text-slate-400">ครองเขตแดน 3 วัน รับ Catalyst ST</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-sky-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Time Rift Challenge</p>
+                                    <p class="text-xs text-slate-400">ภารกิจรายวันสะสมตราแลกกล่อง SP</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>ตลาดกลาง</span>
+                            <a href="#" class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-azure/70 hover:text-azure">View All</a>
+                        </div>
+                        <ul class="mt-4 space-y-4 text-sm text-slate-300">
+                            <li class="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
+                                <div>
+                                    <p class="font-semibold text-slate-200">[A] Chrono Edge</p>
+                                    <p class="text-xs text-slate-500">Catalyst Bonus +8%</p>
+                                </div>
+                                <span class="text-amber-300">48,500 g</span>
+                            </li>
+                            <li class="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
+                                <div>
+                                    <p class="font-semibold text-slate-200">[S] Astral Veil</p>
+                                    <p class="text-xs text-slate-500">ป้องกันพิเศษ บล็อก DMG 12%</p>
+                                </div>
+                                <span class="text-amber-300">132,900 g</span>
+                            </li>
+                            <li class="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
+                                <div>
+                                    <p class="font-semibold text-slate-200">[ST] Celestial Baton</p>
+                                    <p class="text-xs text-slate-500">ดรอปจาก Vault เท่านั้น</p>
+                                </div>
+                                <span class="text-emerald-300">3 Token</span>
+                            </li>
+                        </ul>
+                    </section>
+                </aside>
+            </main>
+
+            <footer class="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6 text-xs uppercase tracking-[0.3em] text-slate-400">
+                <p>© 2126 Chronica Labs</p>
+                <p>ผู้เล่นสามารถซื้อขายทุกอย่างในคลังส่วนตัวได้อย่างเสรี</p>
+            </footer>
+        </div>
     </div>
+
     <script type="module" src="src/main.js"></script>
 </body>
 </html>
