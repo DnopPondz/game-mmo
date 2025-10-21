@@ -403,32 +403,34 @@ async function registerHandler(req, res) {
         const hashedPassword = await hashPassword(password);
         const normalizedUsername = username.trim();
         const normalizedEmail = email.trim().toLowerCase();
+        const userId = crypto.randomBytes(16).toString('hex');
+        const nowIso = new Date().toISOString();
 
         try {
-            const insertResult = await executeSql(`
-                INSERT INTO users (username, email, password)
-                VALUES (${sqlEscape(normalizedUsername)}, ${sqlEscape(normalizedEmail)}, ${sqlEscape(hashedPassword)})
-                RETURNING id, username, email, created_at
+            await executeSql(`
+                INSERT INTO users (id, username, email, password, created_at, updated_at)
+                VALUES (
+                    ${sqlEscape(userId)},
+                    ${sqlEscape(normalizedUsername)},
+                    ${sqlEscape(normalizedEmail)},
+                    ${sqlEscape(hashedPassword)},
+                    ${sqlEscape(nowIso)},
+                    ${sqlEscape(nowIso)}
+                )
             `);
-
-            const newUser = insertResult.rows?.[0];
-
-            if (!newUser?.id) {
-                throw new Error('Failed to create user');
-            }
 
             await executeSql(`
                 INSERT INTO user_profiles (user_id, display_name)
-                VALUES (${sqlEscape(newUser.id)}, ${sqlEscape(normalizedUsername)})
+                VALUES (${sqlEscape(userId)}, ${sqlEscape(normalizedUsername)})
             `);
 
             return jsonResponse(res, 201, {
                 success: true,
                 user: {
-                    id: newUser.id,
-                    username: newUser.username,
-                    email: newUser.email,
-                    createdAt: newUser.created_at
+                    id: userId,
+                    username: normalizedUsername,
+                    email: normalizedEmail,
+                    createdAt: nowIso
                 }
             });
         } catch (error) {
