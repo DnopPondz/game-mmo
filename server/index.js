@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
+import { MongoClient } from 'mongodb';
 
 const SESSION_COOKIE_NAME = 'cd_session';
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -77,17 +78,56 @@ for (const source of envSources) {
 }
 
 const PORT = Number(process.env.PORT || 4173);
-const databaseUrl = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
-
-const baseDbUrl = databaseUrl ? databaseUrl.replace('libsql://', 'https://') : null;
-const pipelineUrl = baseDbUrl ? new URL('/v2/pipeline', baseDbUrl).toString() : null;
+const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'chronicle_depths';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type'
 };
+
+let mongoClient = null;
+let dbPromise = null;
+
+async function connectToDatabase() {
+    if (!MONGODB_URI) {
+        throw new Error('MONGODB_URI is not configured');
+    }
+
+    if (!dbPromise) {
+        dbPromise = (async () => {
+            const client = new MongoClient(MONGODB_URI, {
+                serverSelectionTimeoutMS: 5000
+            });
+
+            try {
+                await client.connect();
+                mongoClient = client;
+                return client.db(MONGODB_DB_NAME);
+            } catch (error) {
+                await client.close().catch(() => {});
+                throw error;
+            }
+        })();
+
+        dbPromise.catch(() => {
+            dbPromise = null;
+        });
+    }
+
+    return dbPromise;
+}
+
+async function getCollections() {
+    const db = await connectToDatabase();
+    return {
+        db,
+        users: db.collection('users'),
+        profiles: db.collection('user_profiles'),
+        sessions: db.collection('sessions')
+    };
+}
 
 function jsonResponse(res, statusCode, payload, additionalHeaders = {}) {
     const body = JSON.stringify(payload);
@@ -100,134 +140,34 @@ function jsonResponse(res, statusCode, payload, additionalHeaders = {}) {
     res.end(body);
 }
 
-function sqlEscape(value) {
-    return `'${value.replace(/'/g, "''")}'`;
+function normalizeLower(value) {
+    return value.trim().toLowerCase();
 }
 
-async function executeSql(sql) {
-    if (!pipelineUrl || !authToken) {
-        throw new Error('Database connection is not configured');
-    }
-
-    const response = await fetch(pipelineUrl, {
-        method: 'POST',
-        headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            requests: [
-                {
-                    type: 'execute',
-                    stmt: { sql }
-                }
-            ]
-        })
-    });
-
-    const payload = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        const message = payload?.message || 'Database request failed';
-        throw new Error(message);
-    }
-
-    const firstResult = payload?.results?.[0];
-
-    if (!firstResult) {
-        throw new Error('Unexpected database response');
-    }
-
-    const execution = firstResult?.result ?? firstResult?.response ?? firstResult;
-
-    if (!execution) {
-        throw new Error('Unexpected database response');
-    }
-
-    if (execution.error) {
-        const message = execution.error?.message || 'Database error';
-        const error = new Error(message);
-        error.code = execution.error?.code;
-        throw error;
-    }
-
-    const payloadResult = execution.response ?? execution.result ?? execution;
-    const columns = payloadResult.cols?.map((col) => col.name) ?? payloadResult.columns ?? [];
-    const rawRows = payloadResult.rows ?? payloadResult.values ?? [];
-
-    const rows = rawRows.map((row) => {
-        if (!Array.isArray(row)) {
-            return row;
-        }
-
-        const record = {};
-        row.forEach((value, index) => {
-            if (value && typeof value === 'object' && 'value' in value) {
-                record[columns[index]] = value.value;
-            } else {
-                record[columns[index]] = value;
-            }
-        });
-        return record;
-    });
-
-    const rowsAffected = Number(
-        payloadResult.rows_affected ??
-            payloadResult.rowsAffected ??
-            execution.rows_affected ??
-            execution.rowsAffected ??
-            0
-    );
-
-    return {
-        rows,
-        rowsAffected
-    };
+function normalizeDisplay(value) {
+    return value.trim();
 }
 
 async function ensureSchema() {
-    if (!pipelineUrl || !authToken) {
-        console.warn('[server] TURSO_DATABASE_URL หรือ TURSO_AUTH_TOKEN ไม่ถูกตั้งค่า, ปิดใช้งาน API');
+    if (!MONGODB_URI) {
+        console.warn('[server] MONGODB_URI ไม่ถูกตั้งค่า, ปิดใช้งาน API');
         return;
     }
 
-    await executeSql(`
-        CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
-            username TEXT NOT NULL UNIQUE,
-            email TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL,
-            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
-        )
-    `);
+    try {
+        const { users, profiles, sessions } = await getCollections();
 
-    await executeSql(`
-        CREATE TABLE IF NOT EXISTS user_profiles (
-            user_id TEXT PRIMARY KEY,
-            display_name TEXT NOT NULL,
-            level INTEGER NOT NULL DEFAULT 1,
-            experience INTEGER NOT NULL DEFAULT 0,
-            gold INTEGER NOT NULL DEFAULT 2500,
-            total_farm_seconds INTEGER NOT NULL DEFAULT 0,
-            rarity_focus TEXT NOT NULL DEFAULT 'S',
-            combat_power INTEGER NOT NULL DEFAULT 1200,
-            last_login TEXT,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    `);
-
-    await executeSql(`
-        CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            user_id TEXT NOT NULL,
-            expires_at TEXT NOT NULL,
-            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now')),
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    `);
-
-    await executeSql(`CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)`);
+        await Promise.all([
+            users.createIndex({ usernameLower: 1 }, { unique: true }),
+            users.createIndex({ emailLower: 1 }, { unique: true }),
+            profiles.createIndex({ userId: 1 }, { unique: true }),
+            sessions.createIndex({ userId: 1 }),
+            sessions.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+        ]);
+    } catch (error) {
+        console.error('[server] failed to ensure MongoDB schema', error);
+        throw error;
+    }
 }
 
 function validateRegistration({ username, email, password }) {
@@ -346,18 +286,20 @@ function parseCookies(req) {
 }
 
 async function createSession(userId) {
+    const { sessions } = await getCollections();
     const token = crypto.randomBytes(48).toString('hex');
     const hashed = hashSessionToken(token);
-    const expiresAt = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000).toISOString();
+    const expiresAtDate = new Date(Date.now() + SESSION_DURATION_SECONDS * 1000);
 
-    await executeSql(`DELETE FROM sessions WHERE user_id = ${sqlEscape(userId)}`);
+    await sessions.deleteMany({ userId });
+    await sessions.insertOne({
+        _id: hashed,
+        userId,
+        expiresAt: expiresAtDate,
+        createdAt: new Date()
+    });
 
-    await executeSql(`
-        INSERT INTO sessions (id, user_id, expires_at)
-        VALUES (${sqlEscape(hashed)}, ${sqlEscape(userId)}, ${sqlEscape(expiresAt)})
-    `);
-
-    return { token, expiresAt, hashed };
+    return { token, expiresAt: expiresAtDate.toISOString(), hashed };
 }
 
 async function getSessionFromRequest(req) {
@@ -368,75 +310,55 @@ async function getSessionFromRequest(req) {
     }
 
     const hashed = hashSessionToken(rawToken);
-    const nowIso = new Date().toISOString();
+    const { sessions } = await getCollections();
+    const sessionDoc = await sessions.findOne({ _id: hashed, expiresAt: { $gt: new Date() } });
 
-    const result = await executeSql(`
-        SELECT id, user_id, expires_at
-        FROM sessions
-        WHERE id = ${sqlEscape(hashed)} AND expires_at > ${sqlEscape(nowIso)}
-        LIMIT 1
-    `);
-
-    const sessionRow = result.rows?.[0];
-    if (!sessionRow) {
+    if (!sessionDoc) {
         return null;
     }
 
     return {
         token: rawToken,
         hashed,
-        userId: sessionRow.user_id,
-        expiresAt: sessionRow.expires_at
+        userId: sessionDoc.userId,
+        expiresAt: sessionDoc.expiresAt instanceof Date ? sessionDoc.expiresAt.toISOString() : sessionDoc.expiresAt
     };
 }
 
 async function destroySession(hashedToken) {
     if (!hashedToken) return;
-    await executeSql(`DELETE FROM sessions WHERE id = ${sqlEscape(hashedToken)}`);
+    const { sessions } = await getCollections();
+    await sessions.deleteOne({ _id: hashedToken });
 }
 
 async function fetchSessionPayload(userId) {
-    const result = await executeSql(`
-        SELECT
-            u.id,
-            u.username,
-            u.email,
-            u.created_at,
-            p.display_name,
-            p.level,
-            p.experience,
-            p.gold,
-            p.total_farm_seconds,
-            p.rarity_focus,
-            p.combat_power,
-            p.last_login
-        FROM users u
-        INNER JOIN user_profiles p ON p.user_id = u.id
-        WHERE u.id = ${sqlEscape(userId)}
-        LIMIT 1
-    `);
+    const { users, profiles } = await getCollections();
 
-    const row = result.rows?.[0];
-    if (!row) {
+    const [userDoc, profileDoc] = await Promise.all([
+        users.findOne({ _id: userId }),
+        profiles.findOne({ userId })
+    ]);
+
+    if (!userDoc || !profileDoc) {
         return null;
     }
 
     return {
         user: {
-            id: row.id,
-            username: row.username,
-            email: row.email,
-            createdAt: row.created_at
+            id: userDoc._id,
+            username: userDoc.username,
+            email: userDoc.email,
+            createdAt: userDoc.createdAt
         },
         profile: {
-            displayName: row.display_name,
-            level: Number(row.level ?? 0),
-            experience: Number(row.experience ?? 0),
-            gold: Number(row.gold ?? 0),
-            totalFarmSeconds: Number(row.total_farm_seconds ?? 0),
-            rarityFocus: row.rarity_focus,
-            combatPower: Number(row.combat_power ?? 0),
-            lastLogin: row.last_login
+            displayName: profileDoc.displayName,
+            level: Number(profileDoc.level ?? 0),
+            experience: Number(profileDoc.experience ?? 0),
+            gold: Number(profileDoc.gold ?? 0),
+            totalFarmSeconds: Number(profileDoc.totalFarmSeconds ?? 0),
+            rarityFocus: profileDoc.rarityFocus,
+            combatPower: Number(profileDoc.combatPower ?? 0),
+            lastLogin: profileDoc.lastLogin ?? null
         }
     };
 }
@@ -483,56 +405,76 @@ async function registerHandler(req, res) {
             });
         }
 
-        if (!pipelineUrl || !authToken) {
+        let collections;
+        try {
+            collections = await getCollections();
+        } catch (error) {
+            console.error('[server] register database unavailable', error);
             return jsonResponse(res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ ลองอีกครั้งภายหลัง'
             });
         }
 
+        const { users, profiles } = collections;
+
         const hashedPassword = await hashPassword(password);
-        const normalizedUsername = username.trim();
-        const normalizedEmail = email.trim().toLowerCase();
-        const userId = crypto.randomBytes(16).toString('hex');
+        const normalizedUsername = normalizeDisplay(username);
+        const normalizedEmail = normalizeLower(email);
+        const usernameLower = normalizedUsername.toLowerCase();
+        const emailLower = normalizedEmail;
+        const userId = crypto.randomUUID();
         const nowIso = new Date().toISOString();
 
         try {
-            await executeSql(`
-                INSERT INTO users (id, username, email, password, created_at, updated_at)
-                VALUES (
-                    ${sqlEscape(userId)},
-                    ${sqlEscape(normalizedUsername)},
-                    ${sqlEscape(normalizedEmail)},
-                    ${sqlEscape(hashedPassword)},
-                    ${sqlEscape(nowIso)},
-                    ${sqlEscape(nowIso)}
-                )
-            `);
+            await users.insertOne({
+                _id: userId,
+                username: normalizedUsername,
+                usernameLower,
+                email: normalizedEmail,
+                emailLower,
+                password: hashedPassword,
+                createdAt: nowIso,
+                updatedAt: nowIso
+            });
 
-            await executeSql(`
-                INSERT INTO user_profiles (user_id, display_name)
-                VALUES (${sqlEscape(userId)}, ${sqlEscape(normalizedUsername)})
-            `);
-
-            return jsonResponse(res, 201, {
-                success: true,
-                user: {
-                    id: userId,
-                    username: normalizedUsername,
-                    email: normalizedEmail,
-                    createdAt: nowIso
-                }
+            await profiles.insertOne({
+                userId,
+                displayName: normalizedUsername,
+                level: 1,
+                experience: 0,
+                gold: 2500,
+                totalFarmSeconds: 0,
+                rarityFocus: 'S',
+                combatPower: 1200,
+                lastLogin: null
             });
         } catch (error) {
-            if (error.message?.includes('UNIQUE') || error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+            if (error?.code === 11000) {
                 return jsonResponse(res, 409, {
                     success: false,
                     message: 'ชื่อผู้เล่นหรืออีเมลถูกใช้งานแล้ว'
                 });
             }
 
+            try {
+                await users.deleteOne({ _id: userId });
+            } catch (cleanupError) {
+                console.warn('[server] failed to cleanup user after registration error', cleanupError);
+            }
+
             throw error;
         }
+
+        return jsonResponse(res, 201, {
+            success: true,
+            user: {
+                id: userId,
+                username: normalizedUsername,
+                email: normalizedEmail,
+                createdAt: nowIso
+            }
+        });
     } catch (error) {
         console.error('[server] register error', error);
         return jsonResponse(res, 500, {
@@ -584,23 +526,23 @@ async function loginHandler(req, res) {
             });
         }
 
-        if (!pipelineUrl || !authToken) {
+        let collections;
+        try {
+            collections = await getCollections();
+        } catch (error) {
+            console.error('[server] login database unavailable', error);
             return jsonResponse(res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ ลองอีกครั้งภายหลัง'
             });
         }
 
-        const normalizedIdentifier = identifier.trim().toLowerCase();
-        const userResult = await executeSql(`
-            SELECT id, username, email, password
-            FROM users
-            WHERE lower(username) = ${sqlEscape(normalizedIdentifier)}
-               OR lower(email) = ${sqlEscape(normalizedIdentifier)}
-            LIMIT 1
-        `);
+        const { users, profiles } = collections;
+        const normalizedIdentifier = normalizeLower(identifier);
 
-        const user = userResult.rows?.[0];
+        const user = await users.findOne({
+            $or: [{ usernameLower: normalizedIdentifier }, { emailLower: normalizedIdentifier }]
+        });
 
         if (!user) {
             return jsonResponse(res, 401, {
@@ -618,14 +560,14 @@ async function loginHandler(req, res) {
             });
         }
 
-        const session = await createSession(user.id);
-        await executeSql(`
-            UPDATE user_profiles
-            SET last_login = ${sqlEscape(new Date().toISOString())}
-            WHERE user_id = ${sqlEscape(user.id)}
-        `);
+        const session = await createSession(user._id);
 
-        const sessionPayload = await fetchSessionPayload(user.id);
+        await profiles.updateOne(
+            { userId: user._id },
+            { $set: { lastLogin: new Date().toISOString() } }
+        );
+
+        const sessionPayload = await fetchSessionPayload(user._id);
 
         if (!sessionPayload) {
             await destroySession(session.hashed);
@@ -703,7 +645,7 @@ async function sessionHandler(req, res) {
             return res.end();
         }
 
-        if (!pipelineUrl || !authToken) {
+        if (!MONGODB_URI) {
             return jsonResponse(res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ'
@@ -822,3 +764,20 @@ ensureSchema()
             console.log(`[server] listening on http://localhost:${PORT}`);
         });
     });
+
+async function shutdown() {
+    if (mongoClient) {
+        try {
+            await mongoClient.close();
+        } catch (error) {
+            console.warn('[server] failed to close MongoDB client', error);
+        }
+    }
+    server.close(() => process.exit(0));
+}
+
+['SIGINT', 'SIGTERM'].forEach((signal) => {
+    process.once(signal, () => {
+        shutdown();
+    });
+});
