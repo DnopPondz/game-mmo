@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { consumeInitialPlayerStats } from '../state';
 
 const DROP_TABLE = [
     { tier: 'G', label: 'เกียร์พื้นฐาน', chance: 0.4 },
@@ -18,15 +19,20 @@ export class Game extends Scene
 
     create ()
     {
+        const initialStats = consumeInitialPlayerStats() || {};
+
         this.player = {
-            level: 1,
-            exp: 0,
-            expToNextLevel: 100,
-            gold: 0,
+            level: initialStats.level ?? 1,
+            exp: initialStats.exp ?? 0,
+            expToNextLevel: initialStats.expToNextLevel ?? 100,
+            gold: initialStats.gold ?? 0,
+            totalFarmSeconds: initialStats.totalFarmSeconds ?? 0,
             inventory: []
         };
 
         this.scene.launch('UIScene');
+
+        this.emitRealtimeUpdate();
 
         this.farmTimer = this.time.addEvent({
             delay: 1000,
@@ -34,6 +40,23 @@ export class Game extends Scene
             callbackScope: this,
             loop: true
         });
+    }
+
+    emitRealtimeUpdate ()
+    {
+        this.events.emit('updateStats', this.player);
+
+        if (typeof document !== 'undefined') {
+            document.dispatchEvent(new CustomEvent('game:stats-update', {
+                detail: {
+                    level: this.player.level,
+                    exp: this.player.exp,
+                    expToNextLevel: this.player.expToNextLevel,
+                    gold: this.player.gold,
+                    totalFarmSeconds: this.player.totalFarmSeconds
+                }
+            }));
+        }
     }
 
     onFarmTick ()
@@ -44,13 +67,16 @@ export class Game extends Scene
         const goldGained = Phaser.Math.Between(5, 18);
         this.player.gold += goldGained;
 
+        const secondsElapsed = (this.farmTimer?.delay ?? 1000) / 1000;
+        this.player.totalFarmSeconds = (this.player.totalFarmSeconds ?? 0) + secondsElapsed;
+
         this.calculateDrop();
 
         if (this.player.exp >= this.player.expToNextLevel) {
             this.levelUp();
         }
 
-        this.events.emit('updateStats', this.player);
+        this.emitRealtimeUpdate();
     }
 
     calculateDrop ()

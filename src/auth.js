@@ -1,4 +1,5 @@
 import { createGameInstance, destroyGameInstance } from './game/main';
+import { setInitialPlayerStats } from './game/state';
 
 const ENDPOINTS = {
     session: '/api/session',
@@ -109,6 +110,8 @@ export default function initializeAuth() {
 
     const headerUsername = document.querySelector('[data-auth-username]');
 
+    let isRealtimeProfileActive = false;
+
     function applyAuthVisibility(isAuthenticated) {
         privateSections.forEach((section) => {
             section.classList.toggle('hidden', !isAuthenticated);
@@ -177,8 +180,29 @@ export default function initializeAuth() {
         }
     }
 
+    function handleRealtimeStats(event) {
+        if (!isRealtimeProfileActive) {
+            return;
+        }
+
+        const detail = event?.detail ?? {};
+
+        if (profileTargets.level && typeof detail.level === 'number' && Number.isFinite(detail.level)) {
+            profileTargets.level.textContent = formatNumber(detail.level);
+        }
+        if (profileTargets.gold && typeof detail.gold === 'number' && Number.isFinite(detail.gold)) {
+            profileTargets.gold.textContent = formatNumber(detail.gold);
+        }
+        if (profileTargets.farmTime && typeof detail.totalFarmSeconds === 'number' && Number.isFinite(detail.totalFarmSeconds)) {
+            profileTargets.farmTime.textContent = formatDuration(detail.totalFarmSeconds);
+        }
+    }
+
+    document.addEventListener('game:stats-update', handleRealtimeStats);
+
     function activateGameplay(session) {
         if (session) {
+            setInitialPlayerStats(session.profile ?? {});
             createGameInstance('game-container');
         } else {
             destroyGameInstance();
@@ -193,6 +217,7 @@ export default function initializeAuth() {
         } else {
             resetProfile();
         }
+        isRealtimeProfileActive = isAuthenticated;
         activateGameplay(isAuthenticated ? session : null);
     }
 
