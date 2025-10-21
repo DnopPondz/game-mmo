@@ -1,7 +1,7 @@
-import StartGame from './game/main';
+import initializeAuth from './auth';
+import setupRegisterForm from './register';
 
 document.addEventListener('DOMContentLoaded', () => {
-
-    StartGame('game-container');
-
+    setupRegisterForm();
+    initializeAuth();
 });
