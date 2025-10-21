@@ -1,12 +1,9 @@
 import { createServer } from 'http';
 import { readFile, stat } from 'fs/promises';
+import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
-
-const PORT = Number(process.env.PORT || 4173);
-const databaseUrl = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const SESSION_COOKIE_NAME = 'cd_session';
 const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -14,6 +11,74 @@ const SESSION_DURATION_SECONDS = 60 * 60 * 24 * 7; // 7 days
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const distPath = path.resolve(__dirname, '../dist');
+
+const projectRoot = path.resolve(__dirname, '..');
+
+function applyEnvValue(key, rawValue) {
+    if (!key) {
+        return;
+    }
+
+    let value = rawValue.trim();
+
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+    }
+
+    if (!(key in process.env)) {
+        process.env[key] = value;
+        return;
+    }
+
+    if (process.env[key] === value) {
+        return;
+    }
+
+    process.env[key] = value;
+}
+
+function loadEnvFile(relativePath) {
+    const resolvedPath = path.resolve(projectRoot, relativePath);
+
+    if (!existsSync(resolvedPath)) {
+        return false;
+    }
+
+    try {
+        const contents = readFileSync(resolvedPath, 'utf-8');
+        const lines = contents.split(/\r?\n/);
+
+        for (const line of lines) {
+            if (!line || line.trim().startsWith('#')) {
+                continue;
+            }
+
+            const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+
+            if (!match) {
+                continue;
+            }
+
+            const [, key, rawValue] = match;
+            applyEnvValue(key, rawValue ?? '');
+        }
+
+        return true;
+    } catch (error) {
+        console.warn(`[server] ไม่สามารถโหลดไฟล์ environment ${relativePath}:`, error.message);
+        return false;
+    }
+}
+
+// Load environment variables from standard local files before reading them.
+const envSources = ['.env.local', '.env'];
+for (const source of envSources) {
+    loadEnvFile(source);
+}
+
+const PORT = Number(process.env.PORT || 4173);
+const databaseUrl = process.env.TURSO_DATABASE_URL;
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const baseDbUrl = databaseUrl ? databaseUrl.replace('libsql://', 'https://') : null;
 const pipelineUrl = baseDbUrl ? new URL('/v2/pipeline', baseDbUrl).toString() : null;
