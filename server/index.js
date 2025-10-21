@@ -132,31 +132,56 @@ async function executeSql(sql) {
         throw new Error(message);
     }
 
-    const result = payload?.results?.[0]?.result;
+    const firstResult = payload?.results?.[0];
 
-    if (!result) {
+    if (!firstResult) {
         throw new Error('Unexpected database response');
     }
 
-    if (result.error) {
-        const message = result.error?.message || 'Database error';
+    const execution = firstResult?.result ?? firstResult?.response ?? firstResult;
+
+    if (!execution) {
+        throw new Error('Unexpected database response');
+    }
+
+    if (execution.error) {
+        const message = execution.error?.message || 'Database error';
         const error = new Error(message);
-        error.code = result.error?.code;
+        error.code = execution.error?.code;
         throw error;
     }
 
-    const columns = result.cols?.map((col) => col.name) ?? [];
-    const rows = (result.rows ?? []).map((row) => {
+    const payloadResult = execution.response ?? execution.result ?? execution;
+    const columns = payloadResult.cols?.map((col) => col.name) ?? payloadResult.columns ?? [];
+    const rawRows = payloadResult.rows ?? payloadResult.values ?? [];
+
+    const rows = rawRows.map((row) => {
+        if (!Array.isArray(row)) {
+            return row;
+        }
+
         const record = {};
         row.forEach((value, index) => {
-            record[columns[index]] = value?.value ?? null;
+            if (value && typeof value === 'object' && 'value' in value) {
+                record[columns[index]] = value.value;
+            } else {
+                record[columns[index]] = value;
+            }
         });
         return record;
     });
 
+    const rowsAffected = Number(
+        payloadResult.rows_affected ??
+            payloadResult.rowsAffected ??
+            execution.rows_affected ??
+            execution.rowsAffected ??
+            0
+    );
+
     return {
         rows,
-        rowsAffected: Number(result.rows_affected ?? 0)
+        rowsAffected
     };
 }
 
