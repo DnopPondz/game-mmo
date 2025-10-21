@@ -62,6 +62,10 @@ export default function setupRegisterForm() {
         button.addEventListener('click', () => toggleOverlay(overlay, true));
     });
 
+    document.addEventListener('auth:show-register', () => {
+        toggleOverlay(overlay, true);
+    });
+
     closeButtons.forEach((button) => {
         button.addEventListener('click', () => toggleOverlay(overlay, false));
     });
@@ -100,6 +104,7 @@ export default function setupRegisterForm() {
                 headers: {
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(payload)
             });
 
@@ -127,7 +132,12 @@ export default function setupRegisterForm() {
             setTimeout(() => {
                 toggleOverlay(overlay, false);
                 updateStatus(messageContainer, '', '');
-            }, 2400);
+                document.dispatchEvent(
+                    new CustomEvent('auth:registration-success', {
+                        detail: { user: result?.user }
+                    })
+                );
+            }, 1600);
         } catch (error) {
             updateStatus(
                 messageContainer,

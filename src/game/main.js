@@ -3,19 +3,39 @@ import { Preloader } from './scenes/Preloader';
 import { Game as GameScene } from './scenes/Game';
 import { UIScene } from './scenes/UIScene';
 
-//  Find out more information about the Game Config at:
-//  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
-const config = {
+let gameInstance = null;
+
+const baseConfig = {
     type: AUTO,
     width: 1024,
     height: 768,
-    parent: 'game-container',
     backgroundColor: '#060f23',
-    scene: [
-        Preloader,
-        GameScene,
-        UIScene
-    ]
+    scene: [Preloader, GameScene, UIScene]
 };
 
-export default new Game(config);
+export function createGameInstance(containerId = 'game-container') {
+    if (gameInstance) {
+        return gameInstance;
+    }
+
+    const config = {
+        ...baseConfig,
+        parent: containerId
+    };
+
+    gameInstance = new Game(config);
+    return gameInstance;
+}
+
+export function destroyGameInstance() {
+    if (!gameInstance) {
+        return;
+    }
+
+    gameInstance.destroy(true);
+    gameInstance = null;
+}
+
+export function getGameInstance() {
+    return gameInstance;
+}

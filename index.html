@@ -58,48 +58,134 @@
                         <span class="font-semibold text-azure">Season 03</span>
                         <span class="ml-2 text-white/60">Deep Vault Awakening</span>
                     </div>
-                    <div class="flex flex-wrap items-center justify-end gap-3">
-                        <button
-                            data-open-register
-                            class="flex items-center gap-2 rounded-full border border-azure/40 bg-azure/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-azure backdrop-blur transition hover:border-azure hover:bg-azure/20"
+                    <div class="flex flex-col items-end gap-2">
+                        <div class="flex flex-wrap items-center justify-end gap-3" data-auth-visible="guest">
+                            <button
+                                data-open-register
+                                class="flex items-center gap-2 rounded-full border border-azure/40 bg-azure/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-azure backdrop-blur transition hover:border-azure hover:bg-azure/20"
+                            >
+                                ลงทะเบียนผู้กล้าใหม่
+                            </button>
+                            <button
+                                data-open-login
+                                class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 backdrop-blur transition hover:border-white/40 hover:bg-white/10"
+                            >
+                                เข้าสู่ระบบผู้กล้า
+                            </button>
+                        </div>
+                        <div
+                            class="hidden items-end gap-3 text-xs uppercase tracking-[0.35em] text-white/70"
+                            data-auth-visible="authenticated"
                         >
-                            ลงทะเบียนผู้กล้าใหม่
-                        </button>
-                        <button class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 backdrop-blur transition hover:border-white/40 hover:bg-white/10">
-                            เข้าสู่ระบบผู้กล้า
-                        </button>
+                            <p class="text-[0.75rem] normal-case tracking-normal text-white/70">
+                                ยินดีต้อนรับกลับสู่ Vault,
+                                <span class="font-semibold text-azure" data-auth-username></span>
+                            </p>
+                            <button
+                                data-logout
+                                class="rounded-full border border-rose-400/40 bg-rose-400/10 px-4 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-rose-200 transition hover:border-rose-400/60 hover:bg-rose-400/20"
+                            >
+                                ออกจากระบบ
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <main class="mt-8 grid flex-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)_320px]">
+            <section
+                data-auth-section="guest"
+                class="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
+            >
+                <div class="rounded-[32px] border border-white/10 bg-white/5 p-8 shadow-neon backdrop-blur">
+                    <div class="space-y-4">
+                        <p class="text-xs uppercase tracking-[0.45em] text-azure/70">เริ่มผจญภัย</p>
+                        <h2 class="text-2xl font-semibold text-slate-100">เข้าสู่ระบบเพื่อปลดล็อก Chrono Forge</h2>
+                        <p class="text-sm leading-relaxed text-slate-300">
+                            เมื่อเข้าสู่ระบบ คุณจะเห็นโปรไฟล์ของตนเอง ระบบออโต้ฟาร์มแบบเรียลไทม์ และตลาดกลางที่ซื้อขายได้ทุกชิ้นในคลังส่วนตัว
+                            เริ่มสร้างชื่อในตำนานใต้พิภพ และสะสมชิ้นส่วนเพื่อคราฟอาวุธระดับ S ขึ้นไป
+                        </p>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button
+                                data-open-login
+                                class="flex items-center gap-2 rounded-full border border-azure/50 bg-azure/15 px-5 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-azure transition hover:bg-azure/25"
+                            >
+                                เข้าสู่ระบบทันที
+                            </button>
+                            <button
+                                data-open-register
+                                class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 transition hover:border-white/40 hover:bg-white/10"
+                            >
+                                สร้างบัญชีใหม่
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="rounded-[32px] border border-azure/20 bg-gradient-to-b from-azure/10 via-slate-900/60 to-slate-950/80 p-6 shadow-neon backdrop-blur">
+                    <div class="space-y-4">
+                        <p class="text-xs uppercase tracking-[0.45em] text-azure/70">Chronicle Highlight</p>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-100">ระบบ Drop 11 ระดับ</p>
+                                    <p class="text-xs text-slate-400">ไอเทม ST, SP, OP, KO ต้องสุ่มจาก Vault เท่านั้น</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-sky-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-100">Auto Farm ตลอด 24 ชั่วโมง</p>
+                                    <p class="text-xs text-slate-400">สะสม EXP, Gold, ชิ้นส่วนคราฟ แม้ปิดเกม</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-amber-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-100">ตลาดซื้อขายครบวงจร</p>
+                                    <p class="text-xs text-slate-400">ผู้เล่นสามารถขายทุกอย่างในกระเป๋าส่วนตัวได้อย่างเสรี</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <main
+                data-auth-section="private"
+                class="mt-8 hidden grid flex-1 gap-6 lg:grid-cols-[320px_minmax(0,1fr)_320px]"
+            >
                 <aside class="space-y-6">
                     <section class="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-neon backdrop-blur">
-                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
-                            <span>ผู้บังคับการ</span>
-                            <span>Auto Online</span>
+                        <div class="flex flex-col gap-1 text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>โปรไฟล์นักผจญภัย</span>
+                            <span class="text-[0.6rem] text-white/50">อัปเดตล่าสุด <span data-profile-field="lastLogin" data-placeholder="—">—</span></span>
                         </div>
-                        <div class="mt-4 space-y-3">
-                            <div>
-                                <p class="text-xs uppercase tracking-[0.4em] text-white/40">อันดับ</p>
-                                <p class="text-2xl font-semibold text-azure">Nova Vanguard</p>
+                        <div class="mt-4 space-y-4">
+                            <div class="space-y-1">
+                                <p class="text-xs uppercase tracking-[0.4em] text-white/40">Chronicle ID</p>
+                                <p class="text-2xl font-semibold text-azure" data-profile-field="displayName" data-placeholder="—">—</p>
+                                <p class="text-sm text-slate-400">
+                                    <span data-profile-field="username" data-placeholder="—" class="font-semibold text-slate-200">—</span>
+                                    <span class="mx-2 text-white/30">•</span>
+                                    <span data-profile-field="email" data-placeholder="—">—</span>
+                                </p>
                             </div>
                             <div class="grid grid-cols-2 gap-4 text-sm text-slate-200">
                                 <div>
                                     <p class="text-xs uppercase tracking-[0.25em] text-white/40">เลเวล</p>
-                                    <p class="text-lg font-semibold">52</p>
+                                    <p class="text-lg font-semibold" data-profile-field="level" data-placeholder="0">0</p>
                                 </div>
                                 <div>
                                     <p class="text-xs uppercase tracking-[0.25em] text-white/40">พลังต่อสู้</p>
-                                    <p class="text-lg font-semibold text-fuchsia-300">128,450</p>
+                                    <p class="text-lg font-semibold text-fuchsia-300" data-profile-field="combatPower" data-placeholder="0">0</p>
                                 </div>
                                 <div>
                                     <p class="text-xs uppercase tracking-[0.25em] text-white/40">เวลาฟาร์ม</p>
-                                    <p class="text-lg font-semibold">18:42:16</p>
+                                    <p class="text-lg font-semibold" data-profile-field="farmTime" data-placeholder="00:00:00">00:00:00</p>
                                 </div>
                                 <div>
                                     <p class="text-xs uppercase tracking-[0.25em] text-white/40">ทองคำ</p>
-                                    <p class="text-lg font-semibold text-amber-300">1,294,820</p>
+                                    <p class="text-lg font-semibold text-amber-300" data-profile-field="gold" data-placeholder="0">0</p>
                                 </div>
                             </div>
                         </div>
@@ -108,7 +194,14 @@
                     <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
                         <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
                             <span>Rarity Codex</span>
-                            <span>Drop Pool</span>
+                            <span class="flex items-center gap-2 text-azure/70">
+                                Focus Drop
+                                <span
+                                    class="rounded-full border border-azure/40 bg-azure/10 px-3 py-1 text-[0.65rem] font-semibold text-azure"
+                                    data-profile-field="rarityFocus"
+                                    data-placeholder="S"
+                                >S</span>
+                            </span>
                         </div>
                         <ul class="mt-4 space-y-3 text-sm">
                             <li class="flex items-center gap-3 rounded-2xl border border-white/5 bg-gradient-to-r from-slate-700/60 via-slate-800/30 to-transparent px-4 py-3">
@@ -180,15 +273,13 @@
                         <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
                             <h2 class="text-sm font-semibold uppercase tracking-[0.35em] text-azure/80">Auto Farm Loop</h2>
                             <p class="mt-3 text-sm text-slate-300">
-                                ตัวละครจะสู้แบบอัตโนมัติ เก็บ EXP, Gold และชิ้นส่วนคราฟทุกๆ เทิร์น พร้อมระบบปรับความเร็วตามระดับ
-                                VIP เพื่อเพิ่มผลตอบแทนต่อชั่วโมง
+                                ตัวละครจะสู้แบบอัตโนมัติ เก็บ EXP, Gold และชิ้นส่วนคราฟทุกๆ เทิร์น พร้อมระบบปรับความเร็วตามระดับ VIP เพื่อเพิ่มผลตอบแทนต่อชั่วโมง
                             </p>
                         </div>
                         <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
                             <h2 class="text-sm font-semibold uppercase tracking-[0.35em] text-azure/80">Chrono Forge</h2>
                             <p class="mt-3 text-sm text-slate-300">
-                                ใช้วัสดุระดับ G ถึง S สร้างเซ็ตไอเทม จุดเปลี่ยนอยู่ที่การตั้งค่า Blueprint และ Catalysts
-                                ที่ปลดความสามารถเฉพาะของคลาส
+                                ใช้วัสดุระดับ G ถึง S สร้างเซ็ตไอเทม จุดเปลี่ยนอยู่ที่การตั้งค่า Blueprint และ Catalysts ที่ปลดความสามารถเฉพาะของคลาส
                             </p>
                         </div>
                         <div class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
@@ -202,23 +293,25 @@
                     <div class="rounded-[32px] border border-azure/20 bg-gradient-to-br from-azure/10 via-slate-900/50 to-slate-950/60 p-6 shadow-neon backdrop-blur">
                         <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                             <div class="max-w-2xl space-y-3">
-                                <p class="text-xs uppercase tracking-[0.45em] text-azure/70">Register Chronicle ID</p>
-                                <h2 class="text-2xl font-semibold text-slate-100">สร้างบัญชีเพื่อรับสิทธิ์เข้าลึกสู่ Vault</h2>
+                                <p class="text-xs uppercase tracking-[0.45em] text-azure/70">Guild Chronicle</p>
+                                <h2 class="text-2xl font-semibold text-slate-100">กิจกรรมกิลด์สด</h2>
                                 <p class="text-sm leading-relaxed text-slate-300">
-                                    ลงทะเบียนผู้กล้าใหม่เพื่อเก็บเวลแบบออโต้ รับเหรียญตราประจำซีซัน และปลดล็อกตลาดซื้อขายที่แลกเปลี่ยนได้ทุกชิ้นในกระเป๋า
-                                    ข้อมูลของคุณจะถูกปกป้องด้วยชั้นความปลอดภัยจาก Chrono Forge Council
+                                    จับทีมลง Abyssal Raid เก็บ Leviathan Core แลกสกินเรือเหาะระดับ KO หรือป้องกันเขตแดนใน Guild War Season เพื่อรับ Catalyst ST
                                 </p>
                             </div>
-                            <div class="flex flex-col items-start gap-3">
-                                <div class="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/60">
-                                    Beta Access เปิดจำกัดจำนวน
+                            <div class="flex flex-col items-start gap-3 text-sm text-slate-300">
+                                <div class="flex items-center gap-3">
+                                    <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+                                    Abyssal Raid — Leviathan Core เปิดแล้ว
                                 </div>
-                                <button
-                                    data-open-register
-                                    class="flex items-center gap-2 rounded-full border border-azure/60 bg-azure/15 px-5 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-azure transition hover:bg-azure/25"
-                                >
-                                    ลงทะเบียนทันที
-                                </button>
+                                <div class="flex items-center gap-3">
+                                    <span class="h-2 w-2 rounded-full bg-fuchsia-300"></span>
+                                    Guild War Season กำลังนับคะแนน
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="h-2 w-2 rounded-full bg-sky-300"></span>
+                                    Time Rift Challenge ปลดล็อกตราแลกกล่อง SP
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -227,38 +320,8 @@
                 <aside class="space-y-6">
                     <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
                         <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
-                            <span>กิจกรรมสด</span>
-                            <span>00:12:45</span>
-                        </div>
-                        <ul class="mt-4 space-y-3 text-sm text-slate-300">
-                            <li class="flex gap-3">
-                                <span class="mt-1 h-2 w-2 rounded-full bg-amber-300"></span>
-                                <div>
-                                    <p class="font-semibold text-slate-200">Abyssal Raid — Leviathan Core</p>
-                                    <p class="text-xs text-slate-400">สะสม Core 20 ชิ้น แลกสกินเรือเหาะระดับ KO</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-3">
-                                <span class="mt-1 h-2 w-2 rounded-full bg-fuchsia-300"></span>
-                                <div>
-                                    <p class="font-semibold text-slate-200">Guild War Season</p>
-                                    <p class="text-xs text-slate-400">ครองเขตแดน 3 วัน รับ Catalyst ST</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-3">
-                                <span class="mt-1 h-2 w-2 rounded-full bg-sky-300"></span>
-                                <div>
-                                    <p class="font-semibold text-slate-200">Time Rift Challenge</p>
-                                    <p class="text-xs text-slate-400">ภารกิจรายวันสะสมตราแลกกล่อง SP</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </section>
-
-                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
-                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
                             <span>ตลาดกลาง</span>
-                            <a href="#" class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-azure/70 hover:text-azure">View All</a>
+                            <span class="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-azure/70">Top Deals</span>
                         </div>
                         <ul class="mt-4 space-y-4 text-sm text-slate-300">
                             <li class="flex items-center justify-between gap-3 rounded-2xl border border-white/5 bg-white/5 px-4 py-3">
@@ -284,6 +347,36 @@
                             </li>
                         </ul>
                     </section>
+
+                    <section class="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+                        <div class="flex items-center justify-between text-xs uppercase tracking-[0.35em] text-azure/80">
+                            <span>Chronicle Feed</span>
+                            <span>Auto Online</span>
+                        </div>
+                        <ul class="mt-4 space-y-3 text-sm text-slate-300">
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-emerald-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Nova Vanguard ได้รับ [S] Astral Veil</p>
+                                    <p class="text-xs text-slate-400">ดรอปจาก Abyssal Vault ชั้น 7</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-amber-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">EpochFennec ขาย [A] Chrono Edge</p>
+                                    <p class="text-xs text-slate-400">ตลาดกลางปิดดีลใน 5 นาที</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <span class="mt-1 h-2 w-2 rounded-full bg-fuchsia-300"></span>
+                                <div>
+                                    <p class="font-semibold text-slate-200">Guild Horizon ครอง Time Rift Challenge</p>
+                                    <p class="text-xs text-slate-400">ได้รับ Catalyst SP x3</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </section>
                 </aside>
             </main>
 
@@ -295,8 +388,73 @@
     </div>
 
     <div
-        id="register-overlay"
+        id="login-overlay"
         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-[#030b1c]/80 px-6 py-10 backdrop-blur-xl"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+    >
+        <div class="relative w-full max-w-lg space-y-6 rounded-[28px] border border-azure/30 bg-gradient-to-b from-slate-900/80 via-slate-950/90 to-slate-900/80 p-8 shadow-neon">
+            <button
+                type="button"
+                data-close-login
+                class="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white/70 transition hover:border-white/30 hover:text-white"
+                aria-label="ปิดหน้าต่างเข้าสู่ระบบ"
+            >
+                <span aria-hidden="true">✕</span>
+            </button>
+            <div class="space-y-2 text-center">
+                <p class="text-xs uppercase tracking-[0.5em] text-azure/70">Chronicle Access</p>
+                <h2 class="text-2xl font-semibold text-slate-100">เข้าสู่ระบบผู้กล้า</h2>
+                <p class="text-sm leading-relaxed text-slate-300">ลงชื่อเข้าใช้เพื่อเข้าถึงโปรไฟล์, ระบบออโต้ฟาร์ม และตลาดกลางแบบเรียลไทม์</p>
+            </div>
+            <form id="login-form" class="space-y-5">
+                <div
+                    data-login-status
+                    class="hidden rounded-2xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200 data-[state=error]:border-rose-500/50 data-[state=error]:bg-rose-500/10 data-[state=error]:text-rose-200"
+                    aria-live="polite"
+                ></div>
+                <div class="space-y-2">
+                    <label for="identifier" class="text-xs uppercase tracking-[0.4em] text-azure/70">อีเมลหรือชื่อผู้เล่น</label>
+                    <input
+                        id="identifier"
+                        name="identifier"
+                        type="text"
+                        required
+                        class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-azure/60 focus:outline-none focus:ring-2 focus:ring-azure/40"
+                        placeholder="you@example.com หรือ NovaVanguard"
+                    />
+                    <p data-error-for="identifier" class="hidden text-xs text-rose-400"></p>
+                </div>
+                <div class="space-y-2">
+                    <label for="login-password" class="text-xs uppercase tracking-[0.4em] text-azure/70">รหัสผ่าน</label>
+                    <input
+                        id="login-password"
+                        name="password"
+                        type="password"
+                        required
+                        minlength="8"
+                        class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-azure/60 focus:outline-none focus:ring-2 focus:ring-azure/40"
+                        placeholder="อย่างน้อย 8 ตัวอักษร"
+                    />
+                    <p data-error-for="password" class="hidden text-xs text-rose-400"></p>
+                </div>
+                <div class="flex flex-col gap-3 text-xs text-slate-400">
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full border border-azure/60 bg-azure/15 px-6 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.45em] text-azure transition hover:bg-azure/30">
+                        เข้าสู่ระบบ
+                    </button>
+                    <p class="text-center text-[0.7rem] text-white/60">
+                        ยังไม่มีบัญชี?
+                        <a href="#" data-switch-to-register class="font-semibold text-azure hover:text-azure/80">ลงทะเบียนผู้กล้าใหม่</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div
+        id="register-overlay"
+        class="fixed inset-0 z-40 hidden flex items-center justify-center bg-[#030b1c]/80 px-6 py-10 backdrop-blur-xl"
         role="dialog"
         aria-modal="true"
         tabindex="-1"
@@ -313,7 +471,9 @@
             <div class="space-y-2 text-center">
                 <p class="text-xs uppercase tracking-[0.5em] text-azure/70">Chronicle Registry</p>
                 <h2 class="text-2xl font-semibold text-slate-100">ลงทะเบียนผู้กล้าใหม่</h2>
-                <p class="text-sm leading-relaxed text-slate-300">ลงทะเบียนเพื่อรับสิทธิ์เข้าถึง Vault Marketplace, ชุดภารกิจเฉพาะกิลด์ และโบนัส EXP ที่ปรับตามเวลาฟาร์มของคุณ</p>
+                <p class="text-sm leading-relaxed text-slate-300">
+                    ลงทะเบียนเพื่อรับสิทธิ์เข้าถึง Vault Marketplace, ชุดภารกิจเฉพาะกิลด์ และโบนัส EXP ที่ปรับตามเวลาฟาร์มของคุณ
+                </p>
             </div>
             <form id="register-form" class="space-y-5">
                 <div
