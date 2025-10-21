@@ -58,9 +58,17 @@
                         <span class="font-semibold text-azure">Season 03</span>
                         <span class="ml-2 text-white/60">Deep Vault Awakening</span>
                     </div>
-                    <button class="flex items-center gap-2 rounded-full border border-azure/40 bg-azure/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-azure backdrop-blur transition hover:border-azure hover:bg-azure/20">
-                        เข้าสู่ระบบผู้กล้า
-                    </button>
+                    <div class="flex flex-wrap items-center justify-end gap-3">
+                        <button
+                            data-open-register
+                            class="flex items-center gap-2 rounded-full border border-azure/40 bg-azure/10 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-azure backdrop-blur transition hover:border-azure hover:bg-azure/20"
+                        >
+                            ลงทะเบียนผู้กล้าใหม่
+                        </button>
+                        <button class="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 backdrop-blur transition hover:border-white/40 hover:bg-white/10">
+                            เข้าสู่ระบบผู้กล้า
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -190,6 +198,30 @@
                             </p>
                         </div>
                     </div>
+
+                    <div class="rounded-[32px] border border-azure/20 bg-gradient-to-br from-azure/10 via-slate-900/50 to-slate-950/60 p-6 shadow-neon backdrop-blur">
+                        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div class="max-w-2xl space-y-3">
+                                <p class="text-xs uppercase tracking-[0.45em] text-azure/70">Register Chronicle ID</p>
+                                <h2 class="text-2xl font-semibold text-slate-100">สร้างบัญชีเพื่อรับสิทธิ์เข้าลึกสู่ Vault</h2>
+                                <p class="text-sm leading-relaxed text-slate-300">
+                                    ลงทะเบียนผู้กล้าใหม่เพื่อเก็บเวลแบบออโต้ รับเหรียญตราประจำซีซัน และปลดล็อกตลาดซื้อขายที่แลกเปลี่ยนได้ทุกชิ้นในกระเป๋า
+                                    ข้อมูลของคุณจะถูกปกป้องด้วยชั้นความปลอดภัยจาก Chrono Forge Council
+                                </p>
+                            </div>
+                            <div class="flex flex-col items-start gap-3">
+                                <div class="rounded-full border border-white/10 bg-black/40 px-4 py-2 text-xs uppercase tracking-[0.4em] text-white/60">
+                                    Beta Access เปิดจำกัดจำนวน
+                                </div>
+                                <button
+                                    data-open-register
+                                    class="flex items-center gap-2 rounded-full border border-azure/60 bg-azure/15 px-5 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-azure transition hover:bg-azure/25"
+                                >
+                                    ลงทะเบียนทันที
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <aside class="space-y-6">
@@ -259,6 +291,81 @@
                 <p>© 2126 Chronica Labs</p>
                 <p>ผู้เล่นสามารถซื้อขายทุกอย่างในคลังส่วนตัวได้อย่างเสรี</p>
             </footer>
+        </div>
+    </div>
+
+    <div
+        id="register-overlay"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center bg-[#030b1c]/80 px-6 py-10 backdrop-blur-xl"
+        role="dialog"
+        aria-modal="true"
+        tabindex="-1"
+    >
+        <div class="relative w-full max-w-lg space-y-6 rounded-[28px] border border-azure/30 bg-gradient-to-b from-slate-900/80 via-slate-950/90 to-slate-900/80 p-8 shadow-neon">
+            <button
+                type="button"
+                data-close-register
+                class="absolute right-4 top-4 rounded-full border border-white/10 bg-white/10 p-2 text-white/70 transition hover:border-white/30 hover:text-white"
+                aria-label="ปิดหน้าต่างลงทะเบียน"
+            >
+                <span aria-hidden="true">✕</span>
+            </button>
+            <div class="space-y-2 text-center">
+                <p class="text-xs uppercase tracking-[0.5em] text-azure/70">Chronicle Registry</p>
+                <h2 class="text-2xl font-semibold text-slate-100">ลงทะเบียนผู้กล้าใหม่</h2>
+                <p class="text-sm leading-relaxed text-slate-300">ลงทะเบียนเพื่อรับสิทธิ์เข้าถึง Vault Marketplace, ชุดภารกิจเฉพาะกิลด์ และโบนัส EXP ที่ปรับตามเวลาฟาร์มของคุณ</p>
+            </div>
+            <form id="register-form" class="space-y-5">
+                <div
+                    data-register-status
+                    class="hidden rounded-2xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200 data-[state=error]:border-rose-500/50 data-[state=error]:bg-rose-500/10 data-[state=error]:text-rose-200 data-[state=success]:border-emerald-400/40 data-[state=success]:bg-emerald-400/10 data-[state=success]:text-emerald-200"
+                    aria-live="polite"
+                ></div>
+                <div class="space-y-2">
+                    <label for="username" class="text-xs uppercase tracking-[0.4em] text-azure/70">ชื่อผู้กล้า</label>
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        required
+                        minlength="3"
+                        class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-azure/60 focus:outline-none focus:ring-2 focus:ring-azure/40"
+                        placeholder="เช่น NovaVanguard"
+                    />
+                    <p data-error-for="username" class="hidden text-xs text-rose-400"></p>
+                </div>
+                <div class="space-y-2">
+                    <label for="email" class="text-xs uppercase tracking-[0.4em] text-azure/70">อีเมลติดต่อ</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-azure/60 focus:outline-none focus:ring-2 focus:ring-azure/40"
+                        placeholder="you@example.com"
+                    />
+                    <p data-error-for="email" class="hidden text-xs text-rose-400"></p>
+                </div>
+                <div class="space-y-2">
+                    <label for="password" class="text-xs uppercase tracking-[0.4em] text-azure/70">รหัสผ่าน</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        minlength="8"
+                        class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-azure/60 focus:outline-none focus:ring-2 focus:ring-azure/40"
+                        placeholder="อย่างน้อย 8 ตัวอักษร"
+                    />
+                    <p data-error-for="password" class="hidden text-xs text-rose-400"></p>
+                </div>
+                <div class="flex flex-col gap-3 text-xs text-slate-400">
+                    <p>ระบบจะยืนยันตัวตนด้วยโทเค็นจาก Chrono Forge ผ่านอีเมลของคุณ</p>
+                    <button type="submit" class="inline-flex items-center justify-center gap-2 rounded-full border border-azure/60 bg-azure/15 px-6 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.45em] text-azure transition hover:bg-azure/30">
+                        ยืนยันการลงทะเบียน
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
