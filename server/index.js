@@ -81,11 +81,21 @@ const PORT = Number(process.env.PORT || 4173);
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || 'chronicle_depths';
 
-const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-};
+function buildCorsHeaders(req) {
+    const origin = req.headers.origin;
+    const headers = {
+        'Access-Control-Allow-Origin': origin || '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    };
+
+    if (origin) {
+        headers['Access-Control-Allow-Credentials'] = 'true';
+        headers['Vary'] = 'Origin';
+    }
+
+    return headers;
+}
 
 let mongoClient = null;
 let dbPromise = null;
@@ -129,12 +139,12 @@ async function getCollections() {
     };
 }
 
-function jsonResponse(res, statusCode, payload, additionalHeaders = {}) {
+function jsonResponse(req, res, statusCode, payload, additionalHeaders = {}) {
     const body = JSON.stringify(payload);
     res.writeHead(statusCode, {
         'Content-Type': 'application/json; charset=utf-8',
         'Content-Length': Buffer.byteLength(body),
-        ...corsHeaders,
+        ...buildCorsHeaders(req),
         ...additionalHeaders
     });
     res.end(body);
@@ -365,13 +375,13 @@ async function fetchSessionPayload(userId) {
 
 async function registerHandler(req, res) {
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, corsHeaders);
+        res.writeHead(204, { ...buildCorsHeaders(req), 'Content-Length': 0 });
         return res.end();
     }
 
     try {
         if (req.method !== 'POST') {
-            res.writeHead(405, { Allow: 'POST, OPTIONS', ...corsHeaders });
+            res.writeHead(405, { Allow: 'POST, OPTIONS', ...buildCorsHeaders(req) });
             return res.end();
         }
 
@@ -389,7 +399,7 @@ async function registerHandler(req, res) {
         try {
             payload = body ? JSON.parse(body) : {};
         } catch (error) {
-            return jsonResponse(res, 400, {
+            return jsonResponse(req, res, 400, {
                 success: false,
                 message: 'รูปแบบข้อมูลไม่ถูกต้อง'
             });
@@ -399,7 +409,7 @@ async function registerHandler(req, res) {
         const validationErrors = validateRegistration({ username, email, password });
 
         if (Object.keys(validationErrors).length > 0) {
-            return jsonResponse(res, 400, {
+            return jsonResponse(req, res, 400, {
                 success: false,
                 errors: validationErrors
             });
@@ -410,7 +420,7 @@ async function registerHandler(req, res) {
             collections = await getCollections();
         } catch (error) {
             console.error('[server] register database unavailable', error);
-            return jsonResponse(res, 503, {
+            return jsonResponse(req, res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ ลองอีกครั้งภายหลัง'
             });
@@ -451,7 +461,7 @@ async function registerHandler(req, res) {
             });
         } catch (error) {
             if (error?.code === 11000) {
-                return jsonResponse(res, 409, {
+                return jsonResponse(req, res, 409, {
                     success: false,
                     message: 'ชื่อผู้เล่นหรืออีเมลถูกใช้งานแล้ว'
                 });
@@ -466,7 +476,7 @@ async function registerHandler(req, res) {
             throw error;
         }
 
-        return jsonResponse(res, 201, {
+        return jsonResponse(req, res, 201, {
             success: true,
             user: {
                 id: userId,
@@ -477,7 +487,7 @@ async function registerHandler(req, res) {
         });
     } catch (error) {
         console.error('[server] register error', error);
-        return jsonResponse(res, 500, {
+        return jsonResponse(req, res, 500, {
             success: false,
             message: 'ไม่สามารถลงทะเบียนได้ในขณะนี้'
         });
@@ -486,13 +496,13 @@ async function registerHandler(req, res) {
 
 async function loginHandler(req, res) {
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, corsHeaders);
+        res.writeHead(204, { ...buildCorsHeaders(req), 'Content-Length': 0 });
         return res.end();
     }
 
     try {
         if (req.method !== 'POST') {
-            res.writeHead(405, { Allow: 'POST, OPTIONS', ...corsHeaders });
+            res.writeHead(405, { Allow: 'POST, OPTIONS', ...buildCorsHeaders(req) });
             return res.end();
         }
 
@@ -510,7 +520,7 @@ async function loginHandler(req, res) {
         try {
             payload = body ? JSON.parse(body) : {};
         } catch (error) {
-            return jsonResponse(res, 400, {
+            return jsonResponse(req, res, 400, {
                 success: false,
                 message: 'รูปแบบข้อมูลไม่ถูกต้อง'
             });
@@ -520,7 +530,7 @@ async function loginHandler(req, res) {
         const validationErrors = validateLogin({ identifier, password });
 
         if (Object.keys(validationErrors).length > 0) {
-            return jsonResponse(res, 400, {
+            return jsonResponse(req, res, 400, {
                 success: false,
                 errors: validationErrors
             });
@@ -531,7 +541,7 @@ async function loginHandler(req, res) {
             collections = await getCollections();
         } catch (error) {
             console.error('[server] login database unavailable', error);
-            return jsonResponse(res, 503, {
+            return jsonResponse(req, res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ ลองอีกครั้งภายหลัง'
             });
@@ -545,7 +555,7 @@ async function loginHandler(req, res) {
         });
 
         if (!user) {
-            return jsonResponse(res, 401, {
+            return jsonResponse(req, res, 401, {
                 success: false,
                 message: 'ไม่พบบัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
             });
@@ -554,7 +564,7 @@ async function loginHandler(req, res) {
         const passwordValid = await verifyPassword(password, user.password);
 
         if (!passwordValid) {
-            return jsonResponse(res, 401, {
+            return jsonResponse(req, res, 401, {
                 success: false,
                 message: 'ไม่พบบัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'
             });
@@ -571,7 +581,7 @@ async function loginHandler(req, res) {
 
         if (!sessionPayload) {
             await destroySession(session.hashed);
-            return jsonResponse(res, 500, {
+            return jsonResponse(req, res, 500, {
                 success: false,
                 message: 'ไม่สามารถสร้างเซสชันได้'
             }, {
@@ -579,7 +589,7 @@ async function loginHandler(req, res) {
             });
         }
 
-        return jsonResponse(res, 200, {
+        return jsonResponse(req, res, 200, {
             success: true,
             session: sessionPayload
         }, {
@@ -587,7 +597,7 @@ async function loginHandler(req, res) {
         });
     } catch (error) {
         console.error('[server] login error', error);
-        return jsonResponse(res, 500, {
+        return jsonResponse(req, res, 500, {
             success: false,
             message: 'ไม่สามารถเข้าสู่ระบบได้ในขณะนี้'
         });
@@ -596,13 +606,13 @@ async function loginHandler(req, res) {
 
 async function logoutHandler(req, res) {
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, corsHeaders);
+        res.writeHead(204, { ...buildCorsHeaders(req), 'Content-Length': 0 });
         return res.end();
     }
 
     try {
         if (req.method !== 'POST') {
-            res.writeHead(405, { Allow: 'POST, OPTIONS', ...corsHeaders });
+            res.writeHead(405, { Allow: 'POST, OPTIONS', ...buildCorsHeaders(req) });
             return res.end();
         }
 
@@ -617,14 +627,14 @@ async function logoutHandler(req, res) {
             await destroySession(session.hashed);
         }
 
-        return jsonResponse(res, 200, {
+        return jsonResponse(req, res, 200, {
             success: true
         }, {
             'Set-Cookie': clearSessionCookieHeader()
         });
     } catch (error) {
         console.error('[server] logout error', error);
-        return jsonResponse(res, 500, {
+        return jsonResponse(req, res, 500, {
             success: false,
             message: 'ออกจากระบบไม่สำเร็จ'
         }, {
@@ -635,18 +645,18 @@ async function logoutHandler(req, res) {
 
 async function sessionHandler(req, res) {
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, corsHeaders);
+        res.writeHead(204, { ...buildCorsHeaders(req), 'Content-Length': 0 });
         return res.end();
     }
 
     try {
         if (req.method !== 'GET') {
-            res.writeHead(405, { Allow: 'GET, OPTIONS', ...corsHeaders });
+            res.writeHead(405, { Allow: 'GET, OPTIONS', ...buildCorsHeaders(req) });
             return res.end();
         }
 
         if (!MONGODB_URI) {
-            return jsonResponse(res, 503, {
+            return jsonResponse(req, res, 503, {
                 success: false,
                 message: 'เซิร์ฟเวอร์ยังไม่พร้อมให้บริการ'
             });
@@ -655,7 +665,7 @@ async function sessionHandler(req, res) {
         const session = await getSessionFromRequest(req);
 
         if (!session) {
-            return jsonResponse(res, 401, {
+            return jsonResponse(req, res, 401, {
                 success: false,
                 message: 'ยังไม่ได้เข้าสู่ระบบ'
             }, {
@@ -667,7 +677,7 @@ async function sessionHandler(req, res) {
 
         if (!sessionPayload) {
             await destroySession(session.hashed);
-            return jsonResponse(res, 401, {
+            return jsonResponse(req, res, 401, {
                 success: false,
                 message: 'ข้อมูลเซสชันไม่ถูกต้อง'
             }, {
@@ -675,13 +685,13 @@ async function sessionHandler(req, res) {
             });
         }
 
-        return jsonResponse(res, 200, {
+        return jsonResponse(req, res, 200, {
             success: true,
             session: sessionPayload
         });
     } catch (error) {
         console.error('[server] session error', error);
-        return jsonResponse(res, 500, {
+        return jsonResponse(req, res, 500, {
             success: false,
             message: 'ไม่สามารถตรวจสอบเซสชันได้'
         });
@@ -745,7 +755,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (req.method === 'OPTIONS') {
-        res.writeHead(204, corsHeaders);
+        res.writeHead(204, { ...buildCorsHeaders(req), 'Content-Length': 0 });
         return res.end();
     }
 
